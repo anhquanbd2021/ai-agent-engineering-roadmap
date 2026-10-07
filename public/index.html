@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Agent Loop Lab — an instrumented Reason → Act → Observe → Decide loop with guardrails, retries, and termination conditions.">
+  <title>Agent Loop Lab — the engineering around the model</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@100..900&display=swap">
+  <link rel="stylesheet" href="/styles.css">
+<!-- pb-shell --><link rel="stylesheet" href="./pb-shell.css"><!-- pb-shell --><!-- pb-back --><link rel="stylesheet" href="./pb-back.css"><!-- pb-back --></head>
+<body>
+<main>
+  <nav aria-label="Primary"><a aria-current="page" href="/">Lab</a><a href="/guide.html">Guide</a><a href="https://github.com/anhquanbd2021/ai-agent-engineering-roadmap">Source</a></nav>
+  <header class="hero">
+    <div><p class="eyebrow">Agent Loop Lab · Reason → Act → Observe → Decide</p><h1>The loop is the agent.</h1><p class="lede">Run a scripted task through an instrumented agent loop over a fake support-desk tool set. Watch the trace show what a prompt alone never gives you: harness retries, a context budget that compacts, guardrails that block writes in code, and a no-progress detector that kills a stuck loop.</p></div>
+    <p class="warning"><strong>Safe educational demo.</strong> The "model" is a deterministic rule-based reasoner — a stand-in that exists to show the engineering around it. Everything runs in your browser; nothing is sent anywhere.</p>
+  </header>
+
+  <section class="workspace" aria-label="Agent loop lab">
+    <section class="panel controls" aria-labelledby="scenario-title">
+      <div><p class="eyebrow">Scenario</p><h2 id="scenario-title">Pick a task</h2></div>
+      <label for="preset">Run</label>
+      <select id="preset"></select>
+      <p id="blurb" class="muted"></p>
+      <button id="run" type="button">Run the loop</button>
+      <p class="muted">Each run re-executes the loop and repaints the full trace — try every scenario.</p>
+      <div class="controls-static">
+        <p class="eyebrow">Fixed engineering (the point)</p>
+        <ul class="facts">
+          <li><strong>Harness:</strong> 2-attempt retry on transient errors only</li>
+          <li><strong>Loop:</strong> step budget 8 + no-progress detector</li>
+          <li><strong>Context:</strong> token budget with compaction</li>
+          <li><strong>Guardrails:</strong> task allowlist · permanent deny · refund gate</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="verdict-title">
+      <div class="section-heading"><div><p class="eyebrow">Verdict</p><h2 id="verdict-title">Run outcome</h2></div><span id="verdict" class="badge" role="status" aria-live="polite">Ready</span></div>
+      <dl class="stats">
+        <div><dt>Steps</dt><dd id="stat-steps">—</dd></div>
+        <div><dt>Retries</dt><dd id="stat-retries">—</dd></div>
+        <div><dt>Guardrail events</dt><dd id="stat-guardrails">—</dd></div>
+        <div><dt>Compactions</dt><dd id="stat-compacts">—</dd></div>
+      </dl>
+      <div class="meter-wrap">
+        <div class="meter-head"><span>Context window</span><span id="meter-label">—</span></div>
+        <div class="meter"><div id="meter-fill"></div></div>
+        <p class="muted">Estimated tokens in the context window vs. the run budget. Compaction events drop it mid-run.</p>
+      </div>
+      <p id="final" class="final"></p>
+    </section>
+  </section>
+
+  <section class="panel trace-panel" aria-labelledby="trace-title">
+    <div><p class="eyebrow">Observability</p><h2 id="trace-title">Step trace — every Reason / Act / Observe / Decide event</h2></div>
+    <ol id="trace" class="trace" aria-label="Agent run trace" tabindex="0"></ol>
+  </section>
+
+  <p class="foot-links"><a href="/guide.html">How the lab maps to the 10 concepts</a> · <a href="https://github.com/anhquanbd2021/ai-agent-engineering-roadmap">Inspect source and tests</a></p>
+</main>
+<script type="module" src="/app.js"></script>
+<!-- pb-shell --><a class="pb-shell" href="https://github.com/anhquanbd2021/ai-agent-engineering-roadmap" title="ai-agent-engineering-roadmap — an Article Playbook demo (view source)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="2" y="2" width="9" height="9" rx="2" fill="#2dd4bf"/><rect x="13" y="2" width="9" height="9" rx="2" fill="#2dd4bf" opacity=".45"/><rect x="2" y="13" width="9" height="9" rx="2" fill="#2dd4bf" opacity=".45"/><rect x="13" y="13" width="9" height="9" rx="4.5" fill="#2dd4bf"/></svg><b>ai-agent-engineering-roadmap</b><i>DEMO</i></a><!-- pb-shell --><!-- pb-back --><a class="pb-back" id="pb-back" href="https://github.com/anhquanbd2021/ai-agent-engineering-roadmap" title="Back to the article — ai-agent-engineering-roadmap">← Article <i>PLAYBOOK</i></a><script>(function(){var a=document.getElementById('pb-back');if(!a)return;var h=location.hostname;if(/^(localhost|127\.0\.0\.1|192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.)/.test(h)){a.href='//'+h+':'+(/^(localhost|127\.0\.0\.1)$/.test(h)?'1234':'30082')+'/microsites/article.html?slug=ai-agent-engineering-roadmap';}})();</script><!-- pb-back --></body>
+</html>

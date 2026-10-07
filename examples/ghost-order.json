@@ -1,0 +1,23 @@
+{
+  "id": "ghost-order",
+  "title": "The order that doesn't exist",
+  "blurb": "A broken reasoner keeps re-issuing the identical lookup for an order that isn't there. The no-progress detector kills the loop long before the step budget.",
+  "task": {
+    "kind": "stubborn-lookup",
+    "instruction": "Find order O-9999.",
+    "order_id": "O-9999",
+    "customer_id": "C-1042"
+  },
+  "allowedTools": ["lookup_order"],
+  "world": {
+    "orders": {
+      "O-778": { "id": "O-778", "customer_id": "C-1042", "amount_cents": 4200, "status": "delivered" }
+    },
+    "policy": {
+      "autoApproveLimitCents": 10000,
+      "text": "Refund policy v3.2 — Delivered orders are refundable in full within 30 days of delivery."
+    },
+    "auditLog": "2026-09-22T11:00:00Z agent run started"
+  },
+  "budget": { "maxSteps": 8, "maxContextTokens": 480 }
+}

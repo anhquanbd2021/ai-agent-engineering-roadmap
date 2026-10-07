@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Guide to the Agent Loop Lab — how the demo maps to the 10 agent-engineering concepts.">
+  <title>Agent Loop Lab Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@100..900&display=swap">
+  <link rel="stylesheet" href="/styles.css">
+<!-- pb-shell --><link rel="stylesheet" href="./pb-shell.css"><!-- pb-shell --><!-- pb-back --><link rel="stylesheet" href="./pb-back.css"><!-- pb-back --></head>
+<body>
+<main>
+  <nav aria-label="Primary"><a href="/">Lab</a><a aria-current="page" href="/guide.html">Guide</a><a href="https://github.com/anhquanbd2021/ai-agent-engineering-roadmap">Source</a></nav>
+  <header>
+    <p class="eyebrow">Fix guide</p>
+    <h1>The 10 concepts, mapped to the lab</h1>
+    <p class="lede">The lab implements five of the ten concepts directly, in code you can run and test. The other five are design disciplines the lab gestures at — this page is honest about which is which.</p>
+    <p class="warning"><strong>Honest limits up front.</strong> The "model" is a deterministic rule-based reasoner, not an LLM. Token counts are character/4 estimates. The guardrail policy is illustrative. The lab proves the <em>engineering</em>, not model intelligence.</p>
+  </header>
+
+  <section class="panel">
+    <p class="eyebrow">Start here</p>
+    <h2>What this demo proves</h2>
+    <p>Every run of the loop produces the same engineering guarantees a production agent needs: the loop <em>always terminates</em> (goal, step budget, or the no-progress detector), a flaky tool is recovered by <em>harness retries</em> the model never sees, the context window is <em>compacted</em> when it exceeds budget, and disallowed or over-limit writes are <em>blocked in code</em> — never merely discouraged in prose. The tests assert all four.</p>
+    <p><a class="try" href="/?scenario=refund-ok">Open the clean run</a></p>
+  </section>
+
+  <section class="guide-section">
+    <p class="eyebrow">Implemented in code</p>
+    <h2>Concepts the lab runs for real</h2>
+    <div class="control-grid">
+      <article class="panel"><span class="control-number">Concept 01</span><h3>Harness engineering</h3><p><code>lookup_order</code> is rate-limited on its first call in a run; the harness retries (bounded, transient errors only) and the loop recovers without the reasoner knowing.</p><dl><dt>See it</dt><dd>Amber <em>Retry</em> events in step 1 of the three scenarios that call <code>lookup_order</code>.</dd></dl></article>
+      <article class="panel"><span class="control-number">Concept 02</span><h3>Loop engineering</h3><p>Three exits are coded into the engine: goal met, step budget (8), and a no-progress detector that kills a loop after the same action repeats with identical args.</p><dl><dt>See it</dt><dd><code>?scenario=ghost-order</code> — killed at step 3 of 8.</dd></dl></article>
+      <article class="panel"><span class="control-number">Concept 03</span><h3>Context engineering</h3><p>Every observation is appended to the context with an estimated token cost. Exceed the budget and the oldest observations collapse into a summary line.</p><dl><dt>See it</dt><dd>The context meter + <em>Context</em> compact events in the refund scenarios.</dd></dl></article>
+      <article class="panel"><span class="control-number">Concept 07</span><h3>Guardrails &amp; permissions</h3><p>Three rules enforced before a tool runs: the task allowlist, a permanent deny on <code>delete_records</code>, and a human-approval gate on refunds above the limit.</p><dl><dt>See it</dt><dd><code>?scenario=delete-everything</code> (blocked) and <code>?scenario=refund-over-limit</code> (gated).</dd></dl></article>
+      <article class="panel"><span class="control-number">Concept 10</span><h3>Observability &amp; tracing</h3><p>Every phase of every step lands in a structured trace with tool, args, verdict, and context size — the same record the tests grade.</p><dl><dt>See it</dt><dd>The trace panel, and <code>test/agent.test.mjs</code> asserting on it.</dd></dl></article>
+    </div>
+  </section>
+
+  <section class="guide-section">
+    <p class="eyebrow">Gestured at, not implemented</p>
+    <h2>Concepts the lab can't prove alone</h2>
+    <div class="control-grid">
+      <article class="panel"><span class="control-number">Concept 04</span><h3>Tool design</h3><p>Partially real: tools carry strict schemas and corrective errors (<code>'order_id' must match /^O-\d+$/ (e.g. 'O-778')</code>). What's missing is a real model benefitting from them.</p></article>
+      <article class="panel"><span class="control-number">Concept 05</span><h3>Memory architecture</h3><p>Each run starts from a fresh world — there is no persistence layer. Memory deserves its own lab.</p></article>
+      <article class="panel"><span class="control-number">Concept 06</span><h3>Orchestration patterns</h3><p>Deliberately single-agent — the article's advice is to earn multi-agent, not start there.</p></article>
+      <article class="panel"><span class="control-number">Concept 08</span><h3>Evals for agents</h3><p>The test suite <em>is</em> the eval: it grades trajectories (guardrail fired, retry happened, loop terminated), not just final answers.</p></article>
+      <article class="panel"><span class="control-number">Concept 09</span><h3>Human-in-the-loop</h3><p>The refund gate models the handoff (over-limit → "routed to a human approver") but no human UI sits behind it — the lab ends at the escalation.</p></article>
+    </div>
+  </section>
+
+  <section class="guide-section">
+    <p class="eyebrow">Architecture</p>
+    <h2>How the demo is built</h2>
+    <div class="table-wrap panel">
+      <table>
+        <thead><tr><th>Layer</th><th>Behavior</th><th>Evidence</th></tr></thead>
+        <tbody>
+          <tr><td>Loop engine</td><td>Reason → Act → Observe → Decide with step budget, no-progress detector, context compaction, and full tracing.</td><td><code>public/agent.mjs</code></td></tr>
+          <tr><td>Tool set</td><td>Five fake support-desk tools with strict schemas, corrective validation errors, and the guardrail policy.</td><td><code>public/tools.mjs</code></td></tr>
+          <tr><td>Reasoner</td><td>Deterministic rule-based stand-in for the model — picks the next action from observation history.</td><td><code>public/reasoner.mjs</code></td></tr>
+          <tr><td>Scenarios</td><td>Four scripted tasks (clean run, gated refund, destructive instruction, ghost order) — embedded from examples/*.json.</td><td><code>public/scenarios.mjs</code> · <code>examples/</code></td></tr>
+          <tr><td>Server</td><td>Zero-dependency static host plus /health and /version. No build step.</td><td><code>app/server.js</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="guide-section">
+    <p class="eyebrow">Run locally</p>
+    <h2>Inspect the evidence</h2>
+    <pre class="code-block">npm test        # loop, guardrails, tools, scenario sync, server
+npm run scan    # side-by-side scenario report
+npm run check   # both
+npm start       # serve the lab on :3000</pre>
+    <p>Nothing reaches a network, a model, or a real system — the loop runs entirely in-process.</p>
+  </section>
+
+  <section class="guide-section panel">
+    <p class="eyebrow">Limits</p>
+    <h2>What this demo does not claim</h2>
+    <ul>
+      <li>The reasoner is rule-based and deterministic — it demonstrates the engineering <em>around</em> a model, not model behavior.</li>
+      <li>Token counts are length/4 estimates, not a real tokenizer.</li>
+      <li>The guardrail policy is illustrative, not a complete permissions model.</li>
+      <li>The human-approval gate stops at escalation — there is no approver UI.</li>
+      <li>No memory, no orchestration — single agent, single run.</li>
+    </ul>
+    <p><a class="try" href="/">Return to Lab</a></p>
+  </section>
+</main>
+<!-- pb-shell --><a class="pb-shell" href="https://github.com/anhquanbd2021/ai-agent-engineering-roadmap" title="ai-agent-engineering-roadmap — an Article Playbook demo (view source)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="2" y="2" width="9" height="9" rx="2" fill="#2dd4bf"/><rect x="13" y="2" width="9" height="9" rx="2" fill="#2dd4bf" opacity=".45"/><rect x="2" y="13" width="9" height="9" rx="2" fill="#2dd4bf" opacity=".45"/><rect x="13" y="13" width="9" height="9" rx="4.5" fill="#2dd4bf"/></svg><b>ai-agent-engineering-roadmap</b><i>DEMO</i></a><!-- pb-shell --><!-- pb-back --><a class="pb-back" id="pb-back" href="https://github.com/anhquanbd2021/ai-agent-engineering-roadmap" title="Back to the article — ai-agent-engineering-roadmap">← Article <i>PLAYBOOK</i></a><script>(function(){var a=document.getElementById('pb-back');if(!a)return;var h=location.hostname;if(/^(localhost|127\.0\.0\.1|192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.)/.test(h)){a.href='//'+h+':'+(/^(localhost|127\.0\.0\.1)$/.test(h)?'1234':'30082')+'/microsites/article.html?slug=ai-agent-engineering-roadmap';}})();</script><!-- pb-back --></body>
+</html>

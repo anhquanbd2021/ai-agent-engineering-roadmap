@@ -1,0 +1,16 @@
+{
+  "name": "ai-agent-engineering-roadmap-demo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Agent Loop Lab — an instrumented Reason→Act→Observe→Decide loop with retries, guardrails, context compaction, and termination conditions.",
+  "scripts": {
+    "start": "node app/server.js",
+    "scan": "node scripts/run-scenarios.mjs",
+    "test": "node --test \"test/*.test.mjs\"",
+    "check": "npm test && npm run scan"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
